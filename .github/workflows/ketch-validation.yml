@@ -1,0 +1,49 @@
+name: Ketch package validation
+
+on:
+  push:
+    branches: [ketch-package-validation]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  HOMEBREW_NO_AUTO_UPDATE: "1"
+  HOMEBREW_NO_INSTALL_FROM_API: "1"
+  HOMEBREW_NO_INSTALL_CLEANUP: "1"
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-26, macos-26-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - name: Set up Homebrew and the formula checkout
+        uses: Homebrew/actions/setup-homebrew@3cdb78d0f62ad29dd32de765782654f4eedea607
+        with:
+          core: true
+          cask: false
+          stable: true
+      - name: Record platform and formula
+        run: |
+          brew config
+          shasum -a 256 "$(brew --repository homebrew/core)/Formula/k/ketch.rb"
+      - name: Build the release from source
+        run: brew install --build-from-source homebrew/core/ketch
+      - name: Test installed functionality offline
+        run: brew test --verbose homebrew/core/ketch
+      - name: Audit the new formula
+        run: brew audit --new --strict homebrew/core/ketch
+      - name: Check formula style and linkage
+        run: |
+          brew style homebrew/core/ketch
+          brew linkage --test homebrew/core/ketch
+      - name: Check installed completions
+        run: |
+          test -s "$(brew --prefix)/etc/bash_completion.d/ketch"
+          test -s "$(brew --prefix)/share/zsh/site-functions/_ketch"
+          test -s "$(brew --prefix)/share/fish/vendor_completions.d/ketch.fish"
