@@ -28,11 +28,12 @@ jobs:
           core: true
           cask: false
           stable: true
-      - name: Trust Ketch and Go formulae used from this fork
+      - name: Verify the fork changes and trust its core formulae
         run: |
-          brew trust --formula homebrew/core/ketch homebrew/core/go \
-            homebrew/core/go@1.22 homebrew/core/go@1.23 homebrew/core/go@1.24 \
-            homebrew/core/go@1.25 homebrew/core/go@1.26
+          core_checkout="$(brew --repository homebrew/core)"
+          git -C "$core_checkout" diff --exit-code 53568c8c410e107c15342632fce80f16b6e18a15 HEAD -- . \
+            ':(exclude)Formula/k/ketch.rb' ':(exclude).github/workflows/ketch-validation.yml'
+          brew trust homebrew/core
       - name: Record platform and formula
         run: |
           brew config
