@@ -28,8 +28,11 @@ jobs:
           core: true
           cask: false
           stable: true
-      - name: Trust the two formulae used from this fork
-        run: brew trust --formula homebrew/core/ketch homebrew/core/go
+      - name: Trust Ketch and Go formulae used from this fork
+        run: |
+          brew trust --formula homebrew/core/ketch homebrew/core/go \
+            homebrew/core/go@1.22 homebrew/core/go@1.23 homebrew/core/go@1.24 \
+            homebrew/core/go@1.25 homebrew/core/go@1.26
       - name: Record platform and formula
         run: |
           brew config
